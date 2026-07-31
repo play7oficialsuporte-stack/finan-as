@@ -1,474 +1,1093 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Damas Elite - César IA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumo Financeiro Interativo</title>
+
+    <!-- Configurações para PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7c3aed">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Finanças Pro">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2953/2953361.png">
+
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #161616 100%);
-            --board-border: #1e120a;
-            --dark-sq: #5c3413;
-            --light-sq: #e6caa3;
-            --p1-gradient: radial-gradient(circle at 35% 35%, #ffffff 0%, #cccccc 60%, #999999 100%);
-            --p2-gradient: radial-gradient(circle at 35% 35%, #444444 0%, #222222 60%, #050505 100%);
-            --highlight: rgba(76, 175, 80, 0.5);
-            --accent-green: #4caf50;
+            --bg-page: #f8fafc;
+            --card-bg: #ffffff;
+            --text-title: #0f172a;
+            --text-body: #475569;
+            --text-muted: #94a3b8;
+            --purple-main: #7c3aed;
+            --green-main: #16a34a;
+            --green-bg: #f0fdf4;
+            --red-main: #dc2626;
+            --red-bg: #fef2f2;
+            --blue-main: #2563eb;
+            --blue-bg: #eff6ff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
 
         body {
-            background: var(--bg-gradient);
-            color: white;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-between;
-            min-height: 100vh; 
-            overflow: hidden;
-            padding: 10px 0;
+            background-color: var(--bg-page);
+            color: var(--text-body);
+            padding: 20px 16px;
+            max-width: 500px;
+            margin: 0 auto;
+            padding-bottom: 40px;
         }
 
-        /* BANNER TOPO: Acima de tudo */
-        #ad-top-wrapper {
-            width: 100vw;
+        /* TELA DE ABERTURA (SPLASH SCREEN) */
+        #splashScreen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #7c3aed, #4c1d95);
             display: flex;
+            flex-direction: column;
             justify-content: center;
-            margin-bottom: 5px;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
 
-        /* Container do Cabeçalho: Agora fica abaixo do banner do topo */
-        .header-container {
-            width: 92vw;
-            max-width: 430px;
-            text-align: left;
-            margin-bottom: 5px;
+        #splashScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
         }
 
-        h1 { 
-            border-left: 5px solid var(--accent-green); 
-            padding-left: 12px; 
-            text-transform: uppercase; 
-            letter-spacing: 2px; 
-            font-size: 1.2rem;
-            font-weight: 800;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        #status { 
-            margin-top: 3px; 
-            font-size: 0.85rem; 
-            color: #888; 
-            font-weight: 600; 
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        /* Isolamento Seguro com Iframe para Banners Nativos */
-        .ad-box {
-            width: 92vw;
-            max-width: 430px;
-            height: 70px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(76, 175, 80, 0.15);
-            border-radius: 8px;
-            position: relative;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-            overflow: hidden;
+        .splash-logo {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 2.5rem;
+            backdrop-filter: blur(10px);
+            animation: bounceLogo 1.2s infinite alternate ease-in-out;
+            margin-bottom: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         }
 
-        .ad-box::before {
-            content: 'publicidade';
-            position: absolute;
-            top: 2px;
-            right: 6px;
-            font-size: 0.5rem;
-            color: rgba(76, 175, 80, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            z-index: 1;
-            pointer-events: none;
+        @keyframes bounceLogo {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-12px) scale(1.05); }
         }
 
-        .ad-frame {
+        .splash-title {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .splash-sub {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        /* MODAL DE BOAS-VINDAS (PRIMEIRO ACESSO) */
+        .modal-welcome-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-page);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 8000;
+            padding: 24px;
+        }
+
+        .modal-welcome-overlay.active { display: flex; }
+
+        .welcome-card {
             width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .welcome-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .welcome-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-title);
+            margin-bottom: 8px;
+        }
+
+        .welcome-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+
+        /* Header com borda lateral decorativa */
+        .header { 
+            margin-bottom: 20px; 
+            padding-left: 12px;
+            border-left: 4px solid var(--purple-main);
+        }
+        .header h1 { font-size: 1.5rem; color: var(--text-title); }
+        .header p { font-size: 0.9rem; color: var(--text-muted); }
+
+        /* Card Principal */
+        .main-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        /* Gráfico Com Rólagem Horizontal */
+        .chart-scroll-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-top: 24px;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .chart-scroll-wrapper::-webkit-scrollbar {
+            height: 4px;
+        }
+        .chart-scroll-wrapper::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .chart-container {
+            display: flex;
+            align-items: flex-end;
+            height: 130px;
+            gap: 16px;
+            min-width: max-content;
+            padding: 0 8px;
+        }
+
+        .bar-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            position: relative;
+            width: 46px;
             height: 100%;
-            border: none;
-            background: transparent;
-            z-index: 2;
-        }
-
-        /* Tabuleiro */
-        .board {
-            display: grid; 
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr);
-            width: 92vw; max-width: 420px; 
-            height: 92vw; max-height: 420px;
-            border: 10px solid var(--board-border); 
-            border-radius: 8px;
-            position: relative;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
-            margin: 5px 0;
-        }
-
-        .sq { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
-        .dark { background-color: var(--dark-sq); box-shadow: inset 0 0 12px rgba(0,0,0,0.2); }
-        .light { background-color: var(--light-sq); box-shadow: inset 0 0 12px rgba(255,255,255,0.1); }
-
-        .piece {
-            width: 84%; height: 84%; border-radius: 50%;
-            cursor: pointer; 
-            box-shadow: 0 6px 10px rgba(0,0,0,0.7), inset 0 -3px 6px rgba(0,0,0,0.4), inset 0 3px 6px rgba(255,255,255,0.3);
-            display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            z-index: 10;
-        }
-
-        .piece.p1 { background: var(--p1-gradient); border: 1px solid #e5e5e5; }
-        .piece.p1:hover { transform: scale(1.06) translateY(-2px); }
-        .piece.p2 { background: var(--p2-gradient); border: 1px solid #1a1a1a; }
-
-        .king::after { 
-            content: '👑'; 
-            font-size: 1.2rem; 
-            position: absolute;
-            top: 46%; left: 50%;
-            transform: translate(-50%, -50%);
-            line-height: 0; 
-            display: block;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 4px gold); 
-            pointer-events: none;
-        }
-
-        .must-capture { animation: pulse-glow 1s infinite alternate; }
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 2px #ff3b30, inset 0 -3px 6px rgba(0,0,0,0.4); }
-            100% { box-shadow: 0 0 18px #ff3b30, inset 0 -3px 6px rgba(0,0,0,0.4); border-color: #ff3b30; }
-        }
-
-        .hint { 
-            width: 36%; height: 36%; 
-            background: var(--highlight); 
-            border-radius: 50%; 
             cursor: pointer;
-            border: 2px solid rgba(255,255,255,0.4);
-            z-index: 5;
-            box-shadow: 0 0 10px var(--accent-green);
+            border-radius: 8px;
+            transition: background 0.2s ease;
         }
 
-        .overlay {
-            position: fixed; inset: 0;
-            background: rgba(10,10,10,0.96); display: none;
-            flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
-            backdrop-filter: blur(6px);
+        .bar-col:hover { background-color: #f1f5f9; }
+
+        .bar { 
+            width: 16px; 
+            border-radius: 8px; 
+            transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 12px;
+        }
+        
+        .bar-positive { background-color: #86efac; }
+        .bar-negative { background-color: #fca5a5; }
+
+        .bar-col.active .bar-positive { background-color: var(--green-main); }
+        .bar-col.active .bar-negative { background-color: var(--red-main); }
+
+        .badge-atual {
+            position: absolute;
+            top: -24px;
+            background-color: var(--purple-main);
+            color: #fff;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(124, 58, 237, 0.3);
         }
 
-        button { 
-            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); 
-            border: none; padding: 14px 36px; 
-            color: white; font-weight: 700; border-radius: 6px; 
-            cursor: pointer; font-size: 1rem; margin-top: 20px;
-            box-shadow: 0 5px 15px rgba(76,175,80,0.4);
+        .month-label { 
+            font-size: 0.70rem; 
+            font-weight: 700; 
+            color: var(--text-muted); 
+            margin-top: 8px;
+            text-align: center;
         }
+        .bar-col.active .month-label { color: var(--purple-main); font-weight: 800; }
+
+        /* Saldos */
+        .balances-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .balance-value { font-size: 1.25rem; font-weight: 800; margin: 4px 0; }
+        .btn-ajuste-poupanca {
+            font-size: 0.7rem;
+            color: var(--blue-main);
+            background: none;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            margin-top: 4px;
+        }
+
+        /* Seções de Lista */
+        .section-box {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-title { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .btn-add-novo {
+            font-size: 0.8rem;
+            color: var(--purple-main);
+            background: none;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 8px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            border-radius: 10px;
+        }
+        .item-row:hover { background-color: #f1f5f9; }
+
+        .item-name { font-size: 0.95rem; font-weight: 700; color: var(--text-title); }
+        .item-subtext { font-size: 0.75rem; color: var(--text-muted); }
+        .item-value { font-weight: 700; font-size: 0.95rem; }
+
+        .total-bar {
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-top: 12px;
+        }
+
+        /* Modais */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 24px 24px 0 0;
+            padding: 20px;
+            box-shadow: var(--shadow-md);
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.25s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .btn-fechar {
+            background: #e2e8f0;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 50%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Formulários */
+        .form-group { margin-bottom: 14px; text-align: left; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-title); margin-bottom: 4px; }
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .form-control:focus { border-color: var(--purple-main); }
+
+        .sub-form-item {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .sub-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .btn-add-sub {
+            width: 100%;
+            padding: 8px;
+            background: #f1f5f9;
+            border: 1px dashed var(--purple-main);
+            color: var(--purple-main);
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-bottom: 16px;
+        }
+
+        .btn-salvar {
+            width: 100%;
+            padding: 12px;
+            background: var(--purple-main);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* Ações no Modal */
+        .sub-item-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sub-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-acao {
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-divida { background-color: var(--red-main); }
+        .btn-receita { background-color: var(--green-main); }
+        .btn-acao.concluido { background-color: #64748b !important; }
+
+        .btn-del-sub-direct {
+            background: var(--red-bg);
+            color: var(--red-main);
+            border: 1px solid #fecaca;
+            padding: 7px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .actions-bar {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+        }
+        .btn-editar-grupo { flex: 1; padding: 10px; background: #e2e8f0; color: var(--text-title); border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .btn-apagar-grupo { padding: 10px; background: var(--red-bg); color: var(--red-main); border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+        /* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */
+        .modal-confirm-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+            padding: 20px;
+        }
+        .modal-confirm-overlay.active { display: flex; }
+
+        .modal-confirm-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 360px;
+            border-radius: 20px;
+            padding: 24px 20px;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            animation: popIn 0.2s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .confirm-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--red-bg);
+            color: var(--red-main);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 12px auto;
+        }
+
+        .confirm-title { font-size: 1.1rem; font-weight: 800; color: var(--text-title); margin-bottom: 6px; }
+        .confirm-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4; }
+
+        .confirm-buttons { display: flex; gap: 10px; }
+        .btn-confirm-cancel { flex: 1; padding: 12px; background: #e2e8f0; color: var(--text-title); border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+        .btn-confirm-delete { flex: 1; padding: 12px; background: var(--red-main); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <!-- 1. BANNER NATIVO ACIMA DE TUDO -->
-    <div id="ad-top-wrapper">
-        <div class="ad-box" id="box-top"></div>
+    <!-- ANIMADA SPLASH SCREEN -->
+    <div id="splashScreen">
+        <div class="splash-logo">📊</div>
+        <div class="splash-title">Finanças Pro</div>
+        <div class="splash-sub">Seu controle simples & rápido</div>
     </div>
 
-    <!-- 2. CABEÇALHO -->
-    <div class="header-container">
-        <h1>Damas Elite: César</h1>
-        <div id="status">Sua vez (Brancas)</div>
+    <!-- TELA DE PRIMEIRO ACESSO (ONBOARDING) -->
+    <div class="modal-welcome-overlay" id="modalWelcome">
+        <div class="welcome-card">
+            <div class="welcome-icon">🚀</div>
+            <div class="welcome-title">Boas-vindas!</div>
+            <div class="welcome-desc">Para personalizar seu aplicativo de finanças, como podemos te chamar?</div>
+            
+            <div class="form-group">
+                <label>Seu Nome ou Apelido</label>
+                <input type="text" id="inputNomeUsuario" class="form-control" placeholder="Ex: Maria, Carlos, José..." autofocus>
+            </div>
+
+            <button class="btn-salvar" onclick="salvarPrimeiroAcesso()" style="margin-top: 10px;">Começar a Usar</button>
+        </div>
     </div>
 
-    <!-- 3. TABULEIRO CENTRAL -->
-    <div class="board" id="gameBoard"></div>
-
-    <!-- 4. BANNER NATIVO EMBAIXO DO TABULEIRO -->
-    <div class="ad-box" id="box-bottom"></div>
-
-    <div class="overlay" id="endOverlay">
-        <h2 id="winMsg" style="font-size: 2.2rem; margin-bottom: 10px; font-weight: 800;"></h2>
-        <button onclick="location.reload()">JOGAR NOVAMENTE</button>
+    <!-- CABEÇALHO DO APP -->
+    <div class="header">
+        <h1 id="txtSaudacao">Olá 👋</h1>
+        <p>Aqui está o resumo das suas finanças.</p>
     </div>
 
-<script>
-    const boardDiv = document.getElementById('gameBoard');
-    let board = [];
-    let turn = 1; 
-    let selected = null;
-    let validMoves = [];
+    <!-- CARD PRINCIPAL (GRÁFICO INTERATIVO COM SCROLL) -->
+    <div class="main-card">
+        <div class="chart-scroll-wrapper" id="chartWrapper">
+            <div class="chart-container" id="chartContainer"></div>
+        </div>
 
-    // Seus 4 scripts fornecidos, divididos estritamente em pares e isolados
-    const adUrls = [
-        "https://conventionalresponse.com/b.X/V/sKdTG-l-0KYfW/cN/ve/mF9AuGZ/UplakRPkTlYz5cOFTDI/wrOpDkEJt/Najtki5dMDj/AJ4JNLQa",
-        "https://conventionalresponse.com/baX.VwsVdkGQls0nYbWscR/yeIm_9WuYZtU/lgkJPvTAYM5FORTRImwrNEjDkXthNwj/kF5EM/jOAw3PM/wI",
-        "https://conventionalresponse.com/b.XsVBspdJGilA0NYkWVcY/IeqmD9auHZCU/lVkcPQTQYD5QOYTpItwaNlTgcytfN/jAk/5_MljNAd2ZMXQl",
-        "https://conventionalresponse.com/bWX.VIsVd/GDlv0CYVWYcO/teSmS9Iu/ZzUnlykfPkT/Yp5/O-TXI/wUN/DNEgt_Nwj/kE5/M/j/AE0RNaQw"
-    ];
+        <div class="balances-grid">
+            <div>
+                <small style="color: var(--text-muted);" id="lblMesSaldo">Saldo do Mês • AGO/26</small>
+                <div class="balance-value" id="valSaldoMes" style="color: var(--green-main);">R$ 0,00</div>
+            </div>
 
-    let currentPairIndex = 0;
+            <div style="border-left: 1px solid var(--border-color); padding-left: 12px;">
+                <small style="color: var(--text-muted);">Poupança / Reserva</small>
+                <div class="balance-value" id="valPoupanca" style="color: var(--blue-main);">R$ 0,00</div>
+                <button class="btn-ajuste-poupanca" onclick="abrirModalPoupanca()">± Ajustar Reserva</button>
+            </div>
+        </div>
+    </div>
 
-    // Nova Lógica de Injeção Forçada via Document Fragment Iframe
-    function injectIframeAd(containerId, scriptUrl) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = ''; // Limpeza radical da rotação anterior
+    <!-- DESPESAS / DÍVIDAS -->
+    <div class="section-box">
+        <div class="section-header">
+            <div class="section-title" style="color: var(--red-main);">↘ Despesas / Dívidas</div>
+            <button class="btn-add-novo" onclick="abrirModalCadastro('divida')">+ Criar Dívida</button>
+        </div>
 
-        const iframe = document.createElement('iframe');
-        iframe.className = 'ad-frame';
-        iframe.scrolling = 'no';
-        container.appendChild(iframe);
+        <div id="listaDespesas"></div>
 
-        // Escreve o script diretamente dentro do escopo isolado do iframe
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        iframeDoc.open();
-        iframeDoc.write(`
-            <body style="margin:0; padding:0; background:transparent; display:flex; justify-content:center; align-items:center;">
-                <script>
-                    (function(pw){
-                        var d = document,
-                            s = d.createElement('script'),
-                            l = d.scripts[d.scripts.length - 1];
-                        s.settings = pw || {};
-                        s.src = "${scriptUrl}";
-                        s.async = true;
-                        s.referrerPolicy = 'no-referrer-when-downgrade';
-                        l.parentNode.insertBefore(s, l);
-                    })({});
-                <\/script>
-            </body>
-        `);
-        iframeDoc.close();
-    }
+        <div class="total-bar" style="background: var(--red-bg); color: var(--red-main);">
+            <span>Total de Despesas</span>
+            <span id="totalDespesasExibicao">- R$ 0,00</span>
+        </div>
+    </div>
 
-    function rotateAds() {
-        let topUrl, bottomUrl;
+    <!-- RECEITAS -->
+    <div class="section-box">
+        <div class="section-header">
+            <div class="section-title" style="color: var(--green-main);">↗ Receitas</div>
+            <button class="btn-add-novo" onclick="abrirModalCadastro('receita')">+ Criar Receita</button>
+        </div>
 
-        // Garante 2 scripts ativos ao mesmo tempo revezando os pares a cada 1 min
-        if (currentPairIndex === 0) {
-            topUrl = adUrls[0];
-            bottomUrl = adUrls[1];
-            currentPairIndex = 1;
-        } else {
-            topUrl = adUrls[2];
-            bottomUrl = adUrls[3];
-            currentPairIndex = 0;
+        <div id="listaReceitas"></div>
+
+        <div class="total-bar" style="background: var(--green-bg); color: var(--green-main);">
+            <span>Total de Receitas</span>
+            <span id="totalReceitasExibicao">+ R$ 0,00</span>
+        </div>
+    </div>
+
+    <!-- MODAL CADASTRO / EDIÇÃO -->
+    <div class="modal-overlay" id="modalCadastro">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="tituloModalCadastro" style="font-size: 1.1rem; color: var(--text-title);">Criar Dívida</h2>
+                <button class="btn-fechar" onclick="fecharModal('modalCadastro')">✕</button>
+            </div>
+
+            <div class="form-group">
+                <label>Nome Principal (Ex: Mercado, Cartão, Aluguel, Salário)</label>
+                <input type="text" id="cadNomePrincipal" class="form-control" placeholder="Digite o nome principal">
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-title);">Subdivisões & Períodos</label>
+                <span style="font-size: 0.85rem; font-weight: 800; color: var(--purple-main);" id="calculoTotalSubdivisao">Total: R$ 0,00</span>
+            </div>
+
+            <div id="containerSubdivisoesForm"></div>
+
+            <button class="btn-add-sub" onclick="adicionarCamposSubdivisao()">+ Adicionar Subdivisão</button>
+            <button class="btn-salvar" onclick="salvarRegistro()">Salvar Cadastro</button>
+        </div>
+    </div>
+
+    <!-- MODAL AÇÃO -->
+    <div class="modal-overlay" id="modalAcao">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <h2 id="acaoNomePai" style="color: var(--text-title); font-size: 1.2rem;">Nome</h2>
+                    <span id="acaoValorTotal" style="font-weight: bold;">R$ 0,00</span>
+                </div>
+                <button class="btn-fechar" onclick="fecharModal('modalAcao')">✕</button>
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Subdivisões do Mês Selecionado:</p>
+            <div id="containerAcaoSubdivisoes"></div>
+
+            <div class="actions-bar">
+                <button class="btn-editar-grupo" onclick="editarGrupoAtual()">✏️ Editar Registro</button>
+                <button class="btn-apagar-grupo" onclick="solicitarExclusaoGrupo()">🗑️ Apagar Tudo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAÇÃO EXCLUSÃO -->
+    <div class="modal-confirm-overlay" id="modalConfirmacao">
+        <div class="modal-confirm-card">
+            <div class="confirm-icon">🗑️</div>
+            <div class="confirm-title" id="confirmTitle">Apagar Registro?</div>
+            <div class="confirm-desc" id="confirmDesc">Tem certeza que deseja continuar?</div>
+            <div class="confirm-buttons">
+                <button class="btn-confirm-cancel" onclick="fecharModal('modalConfirmacao')">Cancelar</button>
+                <button class="btn-confirm-delete" id="btnConfirmarAcaoExcluir">Sim, Apagar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POUPANÇA -->
+    <div class="modal-overlay" id="modalPoupanca">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 style="font-size: 1.1rem; color: var(--text-title);">Ajustar Poupança / Reserva</h2>
+                <button class="btn-fechar" onclick="fecharModal('modalPoupanca')">✕</button>
+            </div>
+
+            <div class="form-group">
+                <label>Operação</label>
+                <select id="poupAcao" class="form-control">
+                    <option value="adicionar">Guardar / Depositar (+)</option>
+                    <option value="retirar">Retirar / Usar (-)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Valor (R$)</label>
+                <input type="number" id="poupValor" class="form-control" placeholder="0.00" step="0.01">
+            </div>
+
+            <button class="btn-salvar" onclick="salvarAjustePoupanca()" style="background-color: var(--blue-main);">Atualizar Reserva</button>
+        </div>
+    </div>
+
+    <script>
+        // REGISTRO DO SERVICE WORKER PARA SUPORTE PWA & OFFLINE
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registrado com sucesso:', reg.scope))
+                    .catch(err => console.log('Falha ao registrar Service Worker:', err));
+            });
         }
 
-        injectIframeAd('box-top', topUrl);
-        injectIframeAd('box-bottom', bottomUrl);
-    }
+        let tipoAtualCadastro = 'divida';
+        let mesSelecionado = '2026-08';
+        let grupoEmVisualizacao = '';
 
-    function init() {
-        board = Array(8).fill().map(() => Array(8).fill(0));
-        for(let r=0; r<8; r++) {
-            for(let c=0; c<8; c++) {
-                if((r+c)%2 !== 0) {
-                    if(r < 3) board[r][c] = 2;
-                    if(r > 4) board[r][c] = 1;
-                }
-            }
-        }
-        updateMoves();
-        render();
-
-        rotateAds();
-        setInterval(rotateAds, 60000); // 1 minuto cravado
-    }
-
-    function getValidMoves(player, b) {
-        let captures = []; let simples = [];
-        for(let r=0; r<8; r++) {
-            for(let c=0; c<8; c++) {
-                if(b[r][c] > 0 && b[r][c] % 2 === player % 2) {
-                    const paths = []; findAllCaptures(r, c, b, [], paths); 
-                    captures.push(...paths);
-                }
-            }
-        }
-        if(captures.length > 0) {
-            let maxC = Math.max(...captures.map(m => m.captured.length));
-            return captures.filter(m => m.captured.length === maxC);
-        }
-        for(let r=0; r<8; r++) {
-            for(let c=0; c<8; c++) {
-                if(b[r][c] > 0 && b[r][c] % 2 === player % 2) simples.push(...findSimples(r, c, b));
-            }
-        }
-        return simples;
-    }
-
-    function findAllCaptures(r, c, b, capturedList, results, originalPos = null) {
-        const piece = b[r][c]; const player = piece % 2 === 0 ? 2 : 1; const isKing = piece > 2;
-        const dirs = [[1,1], [1,-1], [-1,1], [-1,-1]]; let foundAny = false; const startPos = originalPos || {r, c};
+        /* GERADOR DINÂMICO DE MESES COM ANO (36 MESES / 3 ANOS AUTOMÁTICOS) */
+        const siglaMeses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
         
-        dirs.forEach(([dr, dc]) => {
-            let tr = r + dr, tc = c + dc;
-            if(isKing) {
-                while(tr >= 0 && tr < 8 && tc >= 0 && tc < 8 && b[tr][tc] === 0) { tr += dr; tc += dc; }
-                if(tr >= 0 && tr < 8 && tc >= 0 && tc < 8 && b[tr][tc] % 2 !== player % 2 && b[tr][tc] !== 0) {
-                    let nr = tr + dr, nc = tc + dc;
-                    if(nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && b[nr][nc] === 0) {
-                        if(!capturedList.some(p => p.r === tr && p.c === tc)) {
-                            foundAny = true; let nb = b.map(row => [...row]); nb[nr][nc] = piece; nb[r][c] = 0;
-                            findAllCaptures(nr, nc, nb, [...capturedList, {r: tr, c: tc}], results, startPos);
-                        }
-                    }
+        function gerarListaMeses() {
+            const lista = [];
+            const dataAtual = new Date();
+            const anoAtual = dataAtual.getFullYear();
+            
+            for(let ano = anoAtual; ano <= anoAtual + 2; ano++) {
+                for(let m = 0; m < 12; m++) {
+                    const mesFormato = String(m + 1).padStart(2, '0');
+                    const anoCurto = String(ano).slice(-2);
+                    lista.push({
+                        id: `${ano}-${mesFormato}`,
+                        sigla: siglaMeses[m],
+                        ano: ano,
+                        anoCurto: anoCurto,
+                        rotuloExibicao: `${siglaMeses[m]}/${anoCurto}`
+                    });
                 }
+            }
+            return lista;
+        }
+
+        const mesesAno = gerarListaMeses();
+
+        /* CARREGAMENTO DE DADOS */
+        let usuarioNome = localStorage.getItem('financas_nomeUsuario') || '';
+        let bancoDados = JSON.parse(localStorage.getItem('financas_bancoDados')) || {};
+        let valorPoupancaAtual = parseFloat(localStorage.getItem('financas_poupanca')) || 0.00;
+
+        function salvarLocal() {
+            localStorage.setItem('financas_bancoDados', JSON.stringify(bancoDados));
+            localStorage.setItem('financas_poupanca', valorPoupancaAtual.toString());
+            if(usuarioNome) localStorage.setItem('financas_nomeUsuario', usuarioNome);
+        }
+
+        /* TELA DE ABERTURA E ONBOARDING */
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                splash.classList.add('hidden');
+
+                if(!usuarioNome) {
+                    document.getElementById('modalWelcome').classList.add('active');
+                } else {
+                    atualizarSaudacao();
+                }
+            }, 1500);
+        });
+
+        function salvarPrimeiroAcesso() {
+            const nomeInput = document.getElementById('inputNomeUsuario').value.trim();
+            if(!nomeInput) {
+                alert('Por favor, digite como gostaria de ser chamado(a).');
+                return;
+            }
+            usuarioNome = nomeInput;
+            salvarLocal();
+            atualizarSaudacao();
+            document.getElementById('modalWelcome').classList.remove('active');
+        }
+
+        function atualizarSaudacao() {
+            document.getElementById('txtSaudacao').innerText = `Olá, ${usuarioNome} 👋`;
+        }
+
+        function abrirModal(id) { document.getElementById(id).classList.add('active'); }
+        function fecharModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        /* Modal Cadastro */
+        function abrirModalCadastro(tipo, nomeEditar = null) {
+            tipoAtualCadastro = tipo;
+            document.getElementById('tituloModalCadastro').innerText = (tipo === 'divida') ? 'Criar Dívida' : 'Criar Receita';
+            
+            const cont = document.getElementById('containerSubdivisoesForm');
+            cont.innerHTML = '';
+
+            if(nomeEditar && bancoDados[nomeEditar]) {
+                document.getElementById('cadNomePrincipal').value = nomeEditar;
+                bancoDados[nomeEditar].subs.forEach(s => adicionarCamposSubdivisao(s));
             } else {
-                let nr = r + dr*2, nc = c + dc*2;
-                if(nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && b[nr][nc] === 0 && b[r+dr][c+dc] !== 0 && b[r+dr][c+dc] % 2 !== player % 2) {
-                    if(!capturedList.some(p => p.r === r+dr && p.c === c+dc)) {
-                        foundAny = true; let nb = b.map(row => [...row]); nb[nr][nc] = piece; nb[r][c] = 0;
-                        findAllCaptures(nr, nc, nb, [...capturedList, {r: r+dr, c: c+dc}], results, startPos);
-                    }
-                }
+                document.getElementById('cadNomePrincipal').value = '';
+                adicionarCamposSubdivisao();
             }
-        });
-        if(!foundAny && capturedList.length > 0) results.push({ from: startPos, to: {r, c}, captured: capturedList });
-    }
 
-    function findSimples(r, c, b) {
-        const piece = b[r][c]; const player = piece % 2 === 0 ? 2 : 1; const isKing = piece > 2;
-        const moves = []; 
-        const dirs = isKing ? [[1,1], [1,-1], [-1,1], [-1,-1]] : (player === 1 ? [[-1,1], [-1,-1]] : [[1,1], [1,-1]]);
-        
-        dirs.forEach(([dr, dc]) => {
-            let tr = r + dr, tc = c + dc;
-            if(isKing) { 
-                while(tr >= 0 && tr < 8 && tc >= 0 && tc < 8 && b[tr][tc] === 0) { 
-                    moves.push({ from: {r, c}, to: {r: tr, c: tc}, captured: [] }); 
-                    tr += dr; tc += dc; 
-                } 
-            }
-            else { 
-                if(tr >= 0 && tr < 8 && tc >= 0 && tc < 8 && b[tr][tc] === 0) moves.push({ from: {r, c}, to: {r: tr, c: tc}, captured: [] }); 
-            }
-        });
-        return moves;
-    }
-
-    function aiMove() {
-        const result = minimax(board, 5, -Infinity, Infinity, true);
-        if(result.move) executeMove(result.move);
-    }
-
-    function minimax(b, depth, alpha, beta, isMax) {
-        const moves = getValidMoves(isMax ? 2 : 1, b);
-        if(depth === 0 || moves.length === 0) return { score: evalBoard(b) };
-        let bestMove = null;
-        if(isMax) {
-            let maxVal = -Infinity;
-            for(let m of moves) {
-                let nb = simulate(b, m); let score = minimax(nb, depth-1, alpha, beta, false).score;
-                if(score > maxVal) { maxVal = score; bestMove = m; }
-                alpha = Math.max(alpha, score); if(beta <= alpha) break;
-            }
-            return { score: maxVal, move: bestMove };
-        } else {
-            let minVal = Infinity;
-            for(let m of moves) {
-                let nb = simulate(b, m); let score = minimax(nb, depth-1, alpha, beta, true).score;
-                if(score < minVal) { minVal = score; bestMove = m; }
-                beta = Math.min(beta, score); if(beta <= alpha) break;
-            }
-            return { score: minVal, move: bestMove };
+            abrirModal('modalCadastro');
         }
-    }
 
-    function evalBoard(b) {
-        let s = 0;
-        for(let r=0; r<8; r++) { for(let c=0; c<8; c++) {
-            if(b[r][c] === 2) s += 10; if(b[r][c] === 4) s += 28;
-            if(b[r][c] === 1) s -= 10; if(b[r][c] === 3) s -= 28;
-        }} return s;
-    }
+        function adicionarCamposSubdivisao(dados = null) {
+            const container = document.getElementById('containerSubdivisoesForm');
+            const div = document.createElement('div');
+            div.className = 'sub-form-item';
 
-    function simulate(b, m) {
-        let nb = b.map(row => [...row]); 
-        nb[m.to.r][m.to.c] = nb[m.from.r][m.from.c]; 
-        nb[m.from.r][m.from.c] = 0;
-        m.captured.forEach(p => nb[p.r][p.c] = 0); 
-        if(nb[m.to.r][m.to.c] === 1 && m.to.r === 0) nb[m.to.r][m.to.c] = 3;
-        if(nb[m.to.r][m.to.c] === 2 && m.to.r === 7) nb[m.to.r][m.to.c] = 4;
-        return nb;
-    }
+            const nome = dados ? dados.nome : '';
+            const valor = dados ? dados.valor : '';
+            const inicio = dados ? dados.inicio : mesSelecionado;
+            const fim = dados ? dados.fim : mesSelecionado;
 
-    function render() {
-        boardDiv.innerHTML = '';
-        const isCaptureState = validMoves.length > 0 && validMoves[0].captured.length > 0;
-        
-        for(let r=0; r<8; r++) {
-            for(let c=0; c<8; c++) {
-                const sq = document.createElement('div');
-                sq.className = `sq ${(r+c)%2===0?'light':'dark'}`;
-                const val = board[r][c];
+            div.innerHTML = `
+                <input type="text" class="form-control sub-nome" placeholder="Descrição (Ex: Parcela 1, Mudas)" value="${nome}" style="margin-bottom: 6px;">
+                <div class="sub-form-grid" style="margin-bottom: 6px;">
+                    <input type="number" class="form-control sub-valor" placeholder="Valor (R$)" step="0.01" value="${valor}" oninput="calcularTotalForm()">
+                </div>
+                <div class="sub-form-grid">
+                    <div>
+                        <small style="font-size:0.65rem; font-weight:bold;">Mês Início</small>
+                        <input type="month" class="form-control sub-inicio" value="${inicio}">
+                    </div>
+                    <div>
+                        <small style="font-size:0.65rem; font-weight:bold;">Mês Término</small>
+                        <input type="month" class="form-control sub-fim" value="${fim}">
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            calcularTotalForm();
+        }
+
+        function calcularTotalForm() {
+            const valores = document.querySelectorAll('.sub-valor');
+            let total = 0;
+            valores.forEach(i => total += (parseFloat(i.value) || 0));
+            document.getElementById('calculoTotalSubdivisao').innerText = `Total: R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        }
+
+        function salvarRegistro() {
+            const nomePrincipal = document.getElementById('cadNomePrincipal').value.trim();
+            if(!nomePrincipal) { alert('Digite o nome principal!'); return; }
+
+            const itensForm = document.querySelectorAll('.sub-form-item');
+            const subs = [];
+
+            itensForm.forEach(item => {
+                const nome = item.querySelector('.sub-nome').value.trim() || 'Parcela/Item';
+                const valor = parseFloat(item.querySelector('.sub-valor').value) || 0;
+                const inicio = item.querySelector('.sub-inicio').value;
+                const fim = item.querySelector('.sub-fim').value;
+
+                if(valor > 0) subs.push({ nome, valor, inicio, fim });
+            });
+
+            if(subs.length === 0) { alert('Adicione pelo menos uma subdivisão com valor!'); return; }
+
+            bancoDados[nomePrincipal] = { tipo: tipoAtualCadastro, subs: subs };
+
+            salvarLocal();
+            fecharModal('modalCadastro');
+            renderizarTudo();
+        }
+
+        /* Renderizar */
+        function renderizarTudo() {
+            document.getElementById('valPoupanca').innerText = `R$ ${valorPoupancaAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            renderizarGrafico();
+            renderizarListas();
+        }
+
+        function selecionarMes(idMes) {
+            mesSelecionado = idMes;
+            renderizarTudo();
+        }
+
+        /* RENDERIZAR GRÁFICO COM ROTULO MES/ANO */
+        function renderizarGrafico() {
+            const chart = document.getElementById('chartContainer');
+            chart.innerHTML = '';
+
+            let maiorMovimentacao = 0;
+            const saldosMeses = {};
+
+            mesesAno.forEach(m => {
+                let despMes = 0;
+                let recMes = 0;
+
+                for(let key in bancoDados) {
+                    const item = bancoDados[key];
+                    item.subs.forEach(s => {
+                        if(m.id >= s.inicio && m.id <= s.fim) {
+                            if(item.tipo === 'divida') despMes += s.valor;
+                            else recMes += s.valor;
+                        }
+                    });
+                }
+
+                const saldo = recMes - despMes;
+                saldosMeses[m.id] = saldo;
+
+                if(Math.abs(saldo) > maiorMovimentacao) {
+                    maiorMovimentacao = Math.abs(saldo);
+                }
+            });
+
+            if(maiorMovimentacao === 0) maiorMovimentacao = 1000;
+
+            mesesAno.forEach(m => {
+                const saldo = saldosMeses[m.id];
+                const isPositivo = saldo >= 0;
+                const proporcao = Math.abs(saldo) / maiorMovimentacao;
+                const alturaBarra = Math.max(Math.round(proporcao * 95), 15); 
+                const isActive = (m.id === mesSelecionado);
+
+                chart.innerHTML += `
+                    <div class="bar-col ${isActive ? 'active' : ''}" id="col-${m.id}" onclick="selecionarMes('${m.id}')">
+                        ${isActive ? '<span class="badge-atual">Atual</span>' : ''}
+                        <div class="bar ${isPositivo ? 'bar-positive' : 'bar-negative'}" style="height: ${alturaBarra}px;"></div>
+                        <span class="month-label">${m.rotuloExibicao}</span>
+                    </div>
+                `;
+            });
+
+            setTimeout(() => {
+                const colAtiva = document.getElementById(`col-${mesSelecionado}`);
+                const wrapper = document.getElementById('chartWrapper');
+                if(colAtiva && wrapper) {
+                    wrapper.scrollLeft = colAtiva.offsetLeft - (wrapper.clientWidth / 2) + 20;
+                }
+            }, 100);
+        }
+
+        function renderizarListas() {
+            const contDespesas = document.getElementById('listaDespesas');
+            const contReceitas = document.getElementById('listaReceitas');
+
+            contDespesas.innerHTML = '';
+            contReceitas.innerHTML = '';
+
+            let totalDesp = 0;
+            let totalRec = 0;
+
+            const mesObj = mesesAno.find(m => m.id === mesSelecionado);
+            const textoMesAno = mesObj ? mesObj.rotuloExibicao : '';
+            document.getElementById('lblMesSaldo').innerText = `Saldo do Mês • ${textoMesAno}`;
+
+            for(let key in bancoDados) {
+                const item = bancoDados[key];
+                const subsValidas = item.subs.filter(s => mesSelecionado >= s.inicio && mesSelecionado <= s.fim);
                 
-                if(val > 0) {
-                    const p = document.createElement('div');
-                    p.className = `piece p${val%2===0?2:1} ${val>2?'king':''}`;
-                    if(selected && selected.r === r && selected.c === c) p.style.transform = "scale(1.08) translateY(-2px)";
-                    if(isCaptureState && validMoves.some(m => m.from.r === r && m.from.c === c)) p.classList.add('must-capture');
-                    p.onclick = () => { if(turn === 1) select(r, c); };
-                    sq.appendChild(p);
-                } else if(selected) {
-                    const move = validMoves.find(m => m.from.r === selected.r && m.from.c === selected.c && m.to.r === r && m.to.c === c);
-                    if(move) {
-                        const h = document.createElement('div'); h.className = 'hint';
-                        h.onclick = () => executeMove(move); sq.appendChild(h);
+                if(subsValidas.length > 0) {
+                    let soma = subsValidas.reduce((acc, curr) => acc + curr.valor, 0);
+
+                    const html = `
+                        <div class="item-row" onclick="abrirModalAcao('${key}', '${item.tipo}')">
+                            <div>
+                                <div class="item-name">${key}</div>
+                                <div class="item-subtext">${subsValidas.length} subdivisõ${subsValidas.length > 1 ? 'es' : 'e'} neste mês</div>
+                            </div>
+                            <div class="item-value" style="color: ${item.tipo === 'divida' ? 'var(--red-main)' : 'var(--green-main)'};">
+                                ${item.tipo === 'divida' ? '-' : '+'} R$ ${soma.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                            </div>
+                        </div>
+                    `;
+
+                    if(item.tipo === 'divida') {
+                        totalDesp += soma;
+                        contDespesas.innerHTML += html;
+                    } else {
+                        totalRec += soma;
+                        contReceitas.innerHTML += html;
                     }
                 }
-                boardDiv.appendChild(sq);
+            }
+
+            const saldoTotalMes = totalRec - totalDesp;
+            const elSaldo = document.getElementById('valSaldoMes');
+            elSaldo.innerText = `R$ ${saldoTotalMes.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            elSaldo.style.color = (saldoTotalMes >= 0) ? 'var(--green-main)' : 'var(--red-main)';
+
+            document.getElementById('totalDespesasExibicao').innerText = `- R$ ${totalDesp.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('totalReceitasExibicao').innerText = `+ R$ ${totalRec.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        }
+
+        /* Modal Ação */
+        function abrirModalAcao(nomePai, tipo) {
+            grupoEmVisualizacao = nomePai;
+            const item = bancoDados[nomePai];
+            if(!item) return;
+
+            document.getElementById('acaoNomePai').innerText = nomePai;
+            const subsValidas = item.subs.filter(s => mesSelecionado >= s.inicio && mesSelecionado <= s.fim);
+            let soma = subsValidas.reduce((acc, curr) => acc + curr.valor, 0);
+
+            const elValor = document.getElementById('acaoValorTotal');
+            elValor.innerText = `R$ ${soma.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            elValor.style.color = (tipo === 'divida') ? 'var(--red-main)' : 'var(--green-main)';
+
+            const container = document.getElementById('containerAcaoSubdivisoes');
+            container.innerHTML = '';
+
+            const textoBotao = (tipo === 'divida') ? 'Pagar' : 'Receber';
+            const classeBotao = (tipo === 'divida') ? 'btn-divida' : 'btn-receita';
+
+            subsValidas.forEach((sub) => {
+                const subIndexReal = item.subs.indexOf(sub);
+                container.innerHTML += `
+                    <div class="sub-item-card">
+                        <div>
+                            <div style="font-weight: 700; color: var(--text-title);">${sub.nome}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">R$ ${sub.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        </div>
+                        <div class="sub-item-actions">
+                            <button class="btn-acao ${classeBotao}" onclick="alternarStatus(this, '${textoBotao}')">${textoBotao}</button>
+                            <button class="btn-del-sub-direct" onclick="solicitarRemocaoSubdivisaoDireta(${subIndexReal})" title="Apagar esta subdivisão">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            abrirModal('modalAcao');
+        }
+
+        function alternarStatus(btn, textoOriginal) {
+            if (btn.classList.contains('concluido')) {
+                btn.classList.remove('concluido');
+                btn.innerText = textoOriginal;
+            } else {
+                btn.classList.add('concluido');
+                btn.innerText = (textoOriginal === 'Pagar') ? '✓ Pago' : '✓ Recebido';
             }
         }
-    }
 
-    function select(r, c) { selected = {r, c}; render(); }
-
-    async function executeMove(m) {
-        boardDiv.style.pointerEvents = "none";
-        const pValue = board[m.from.r][m.from.c];
-        
-        board[m.from.r][m.from.c] = 0;
-        m.captured.forEach(p => board[p.r][p.c] = 0);
-        board[m.to.r][m.to.c] = pValue;
-
-        if(board[m.to.r][m.to.c] === 1 && m.to.r === 0) board[m.to.r][m.to.c] = 3;
-        if(board[m.to.r][m.to.c] === 2 && m.to.r === 7) board[m.to.r][m.to.c] = 4;
-
-        selected = null;
-        turn = turn === 1 ? 2 : 1;
-        document.getElementById('status').innerText = turn === 1 ? "Sua vez (Brancas)" : "César está pensando...";
-        
-        render();
-        updateMoves();
-        
-        setTimeout(() => {
-            boardDiv.style.pointerEvents = "auto";
-            if(turn === 2) aiMove();
-        }, 500);
-    }
-
-    function updateMoves() {
-        validMoves = getValidMoves(turn, board);
-        if(validMoves.length === 0) {
-            document.getElementById('endOverlay').style.display = 'flex';
-            document.getElementById('winMsg').innerText = turn === 1 ? "César Venceu!" : "Você Venceu!";
+        /* Funções de Edição */
+        function editarGrupoAtual() {
+            const item = bancoDados[grupoEmVisualizacao];
+            if(!item) return;
+            fecharModal('modalAcao');
+            abrirModalCadastro(item.tipo, grupoEmVisualizacao);
         }
-    }
 
-    init();
-</script>
+        /* Exclusão Direta */
+        function solicitarRemocaoSubdivisaoDireta(subIndex) {
+            const item = bancoDados[grupoEmVisualizacao];
+            if(!item || !item.subs[subIndex]) return;
+
+            const nomeSub = item.subs[subIndex].nome;
+
+            exibirConfirmacao(
+                'Apagar Subdivisão?',
+                `Tem certeza que deseja apagar apenas a subdivisão "<strong>${nomeSub}</strong>"?`,
+                () => {
+                    item.subs.splice(subIndex, 1);
+                    
+                    if(item.subs.length === 0) {
+                        delete bancoDados[grupoEmVisualizacao];
+                        fecharModal('modalAcao');
+                    } else {
+                        abrirModalAcao(grupoEmVisualizacao, item.tipo);
+                    }
+                    salvarLocal();
+                    renderizarTudo();
+                }
+            );
+        }
+
+        /* Exclusão do Grupo Todo */
+        function solicitarExclusaoGrupo() {
+            exibirConfirmacao(
+                'Apagar Registro Completo?',
+                `Tem certeza que deseja apagar "<strong>${grupoEmVisualizacao}</strong>" e TODAS as suas subdivisões?`,
+                () => {
+                    delete bancoDados[grupoEmVisualizacao];
+                    salvarLocal();
+                    fecharModal('modalAcao');
+                    renderizarTudo();
+                }
+            );
+        }
+
+        function exibirConfirmacao(titulo, descricao, acaoConfirmar) {
+            document.getElementById('confirmTitle').innerText = titulo;
+            document.getElementById('confirmDesc').innerHTML = descricao;
+            
+            const btnConfirm = document.getElementById('btnConfirmarAcaoExcluir');
+            btnConfirm.onclick = () => {
+                acaoConfirmar();
+                fecharModal('modalConfirmacao');
+            };
+
+            abrirModal('modalConfirmacao');
+        }
+
+        /* Poupança */
+        function abrirModalPoupanca() { abrirModal('modalPoupanca'); }
+
+        function salvarAjustePoupanca() {
+            const acao = document.getElementById('poupAcao').value;
+            const valor = parseFloat(document.getElementById('poupValor').value) || 0;
+            if(valor <= 0) return;
+
+            if(acao === 'adicionar') valorPoupancaAtual += valor;
+            else valorPoupancaAtual -= valor;
+
+            salvarLocal();
+            document.getElementById('valPoupanca').innerText = `R$ ${valorPoupancaAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('poupValor').value = '';
+            fecharModal('modalPoupanca');
+        }
+
+        renderizarTudo();
+    </script>
 </body>
 </html>
