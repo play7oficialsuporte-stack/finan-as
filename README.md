@@ -1,2 +1,2 @@
-# leitor-a
-Site de mangá usando MangaDex API para testes de anúncios
+# FINANÇAS 
+App de controle de caixa 
